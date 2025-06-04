@@ -32,4 +32,42 @@ async function login() {
 async function fetchUsers() {
   try {
     console.log('Fetching users...');
-    const res = await client.
+    const res = await client.get(`${BASE_URL}/api/users`);
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching users:', error.message);
+    process.exit(1);
+  }
+}
+
+// Fetch current authenticated user's info
+async function fetchCurrentUser() {
+  try {
+    console.log('Fetching current user info...');
+    const res = await client.get(`${BASE_URL}/settings`);
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching current user:', error.message);
+    return null;
+  }
+}
+
+// Save to users.json
+function saveToFile(users, currentUser) {
+  const data = [...users];
+
+  if (currentUser) {
+    data.push({ currentUser });
+  }
+
+  fs.writeFileSync('users.json', JSON.stringify(data, null, 2), 'utf-8');
+  console.log(`Saved ${data.length} items to users.json`);
+}
+
+// Main script execution
+(async () => {
+  await login();
+  const users = await fetchUsers();
+  const currentUser = await fetchCurrentUser();
+  saveToFile(users, currentUser);
+})();
